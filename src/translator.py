@@ -195,10 +195,13 @@ class CrossModel:
 
                     new_row[cross_column.new_column.name] = value
                 else:
-                    raise CrossModelExceptions(
-                        "CrossColumnError",
-                        f"Column {cross_column.old_column.name} not found in old data",
-                    )
+                    if mode == "strict":
+                        raise CrossModelExceptions(
+                            "CrossColumnError",
+                            f"Column {cross_column.old_column.name} not found in old data",
+                        )
+                    elif mode == "lenient":
+                        continue
 
             new_data.append(new_row)
 
