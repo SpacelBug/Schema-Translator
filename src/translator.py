@@ -29,13 +29,14 @@ class CrossColumn:
         parse_types: method, which parse value to new type using type from new column.
     """
 
-    def __init__(self, new_column: Column, old_column: Column, mapping: dict = None):
+    def __init__(self, new_column: Column, old_column: Column, mapping: dict = None, values_to_column: list[dict] = None):
         """Constructor of CrossColumn class.
 
         Parameters:
             new_column: Column object, which describe column in new model
             old_column: Column object, which describe column in old model
             mapping: dict, which describe mapping of column values.
+            values_to_column: list of values, which should be transformed to new column.
         """
         self.new_column = new_column
         self.old_column = old_column
@@ -49,6 +50,16 @@ class CrossColumn:
         
         ```
         mapping = { "1": 4, "2": 2, "3": 1 }
+        ```
+        """
+
+        self.values_to_column = values_to_column
+        """Describe list of values, which should be transformed to new column.
+        ```
+        values_to_column = [
+            {"value": "e4rds321sd1", "column": Column(name="new_public_id", type="string")},
+            {"value": "ksi388sd3fu", "column": Column(name="new_public_id", type="string"), "new_value": "test_value"},
+        ]
         ```
         """
 
@@ -133,6 +144,7 @@ class CrossModel:
 
             for cross_column in self.columns:
                 if check_values_in_row(cross_column.old_column.name, row):
+                    #TODO: add column splitting
                     # get value from old data using old column name, if old column name is a string, otherwise get concatenated value from old data using old column names
                     value = (
                         row[cross_column.old_column.name]
@@ -145,14 +157,27 @@ class CrossModel:
                         )
                     )
 
-                    # if mapping is not None, then map value, otherwise return value as is
-                    if cross_column.mapping is not None:
-                        value = cross_column.map(value, missed_values=map_missed_values)
-                    # if types are different, then parse value to new type, otherwise return value as is
-                    if (
-                        cross_column.new_column.type != cross_column.old_column.type
-                    ) and (value is not None):
-                        value = cross_column.parse_types(value)
+                    if cross_column.values_to_column is not None:
+                        value_found = False
+                        for new_values in cross_column.values_to_column:
+                            search_value = new_values.get("value")
+                            if value == search_value:
+                                column = new_values.get("column")
+                                new_value = new_values.get("new_value", value)
+                                new_row[column.name] = new_value
+                                value_found = True
+                                break
+                        if value_found:
+                            continue
+                    else:
+                        # if mapping is not None, then map value, otherwise return value as is
+                        if cross_column.mapping is not None:
+                            value = cross_column.map(value, missed_values=map_missed_values)
+                        # if types are different, then parse value to new type, otherwise return value as is
+                        if (
+                            cross_column.new_column.type != cross_column.old_column.type
+                        ) and (value is not None):
+                            value = cross_column.parse_types(value)
 
                     new_row[cross_column.new_column.name] = value
                 else:
@@ -170,7 +195,7 @@ class CrossModel:
         pass
 
     @staticmethod
-    def from_dict(name: str, data: dict):
+    def from_dict(name: str, schema: dict):
         """Create `CrossModel` instance from dictionary.
 
         Parameters:
@@ -181,7 +206,11 @@ class CrossModel:
                 {
                     new_column: {"name": "status", "type": "string"},
                     old_column: {"name": "status_code", "type": "integer"},
-                    mapping: {"1": "active", "0": "inactive", "2": "pending"}
+                    mapping: {"1": "active", "0": "inactive", "2": "pending"},
+                    values_to_column: [
+                        {"value": "e4rds321sd1", "column": Column(name="new_public_id", type="string")},
+                        {"value": "ksi388sd3fu", "column": Column(name="new_public_id", type="string"), "new_value": "test_value"},
+                    ]
                 },
             ]
             ```
@@ -192,16 +221,17 @@ class CrossModel:
 
         cross_model = CrossModel(name=name, columns=[])
 
-        for cross_columns in data:
-            if "new_column" not in cross_columns or "old_column" not in cross_columns:
+        for cross_column in schema:
+            if "new_column" not in cross_column or "old_column" not in cross_column:
                 raise CrossModelExceptions(
                     "CrossModelError",
-                    "Each column should have 'new_column' and 'old_column' keys",
+                    f"Each column should have 'new_column' and 'old_column' keys",
                 )
 
-            new_column = cross_columns["new_column"]
-            old_column = cross_columns["old_column"]
-            mapping = cross_columns.get("mapping")
+            new_column = cross_column["new_column"]
+            old_column = cross_column["old_column"]
+            mapping = cross_column.get("mapping")
+            values_to_column = cross_column.get("values_to_column")
 
             if "name" not in new_column or "type" not in new_column:
                 raise CrossModelExceptions(
@@ -221,6 +251,7 @@ class CrossModel:
                 new_column=new_column_obj,
                 old_column=old_column_obj,
                 mapping=mapping,
+                values_to_column=values_to_column,
             )
             cross_model.columns.append(cross_column)
 
