@@ -29,7 +29,13 @@ class CrossColumn:
         parse_types: method, which parse value to new type using type from new column.
     """
 
-    def __init__(self, new_column: Column, old_column: Column, mapping: dict = None, values_to_column: list[dict] = None):
+    def __init__(
+        self,
+        new_column: Column,
+        old_column: Column,
+        mapping: dict = None,
+        values_to_column: list[dict] = None,
+    ):
         """Constructor of CrossColumn class.
 
         Parameters:
@@ -128,10 +134,16 @@ class CrossModel:
         """Transform data from old model to new model using columns description in self.columns.
 
         Parameters:
-            old_data: list of dict, which describe data in old model.
-            map_missed_values: if True, then if value is not found in mapping, it will be returned as is, otherwise None will be returned.
-            mode: if 'strict' (default value), then if column is not found in old data, CrossColumnError will be raised, if 'lenient', then
-            column will be skipped, if 'perverse', then column will be added to new data when it is broken.
+            old_data:
+                list of dict, which describe data in old model.
+
+            map_missed_values:
+                if True, then if value is not found in mapping, it will be returned as is, otherwise None will be returned.
+
+            mode:
+                ['strict', 'lenient', 'exclusive', 'perverse']
+                If 'strict' (default value), then if column is not found in old data or can`t be parsed, CrossColumnError will be raised, if 'lenient',
+                then column will be skipped, 'perverse', then column will be added to new data when it is broken.
 
         Returns:
             list of dict, which describe data in new model
@@ -144,7 +156,7 @@ class CrossModel:
 
             for cross_column in self.columns:
                 if check_values_in_row(cross_column.old_column.name, row):
-                    #TODO: add column splitting
+                    # TODO: add column splitting
                     # get value from old data using old column name, if old column name is a string, otherwise get concatenated value from old data using old column names
                     value = (
                         row[cross_column.old_column.name]
@@ -172,7 +184,9 @@ class CrossModel:
                     else:
                         # if mapping is not None, then map value, otherwise return value as is
                         if cross_column.mapping is not None:
-                            value = cross_column.map(value, missed_values=map_missed_values)
+                            value = cross_column.map(
+                                value, missed_values=map_missed_values
+                            )
                         # if types are different, then parse value to new type, otherwise return value as is
                         if (
                             cross_column.new_column.type != cross_column.old_column.type
