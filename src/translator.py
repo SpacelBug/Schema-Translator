@@ -95,7 +95,9 @@ class CrossColumn:
             elif self.new_column.type == "float":
                 return float(value) if value != "" else None
             elif self.new_column.type == "boolean":
-                return bool(value)
+                from src.utils import parse_boolean
+
+                return parse_boolean(value)
             elif self.new_column.type == "date":
                 from datetime import datetime
 
