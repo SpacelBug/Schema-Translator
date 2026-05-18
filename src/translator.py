@@ -282,16 +282,13 @@ class CrossModel:
             mapping = cross_column.get("mapping")
             values_to_column = cross_column.get("values_to_column")
 
-            if "name" not in new_column or "type" not in new_column:
-                raise CrossModelExceptions(
-                    "CrossModelError",
-                    "New column should have 'name' and 'type' keys",
-                )
-            if "name" not in old_column or "type" not in old_column:
-                raise CrossModelExceptions(
-                    "CrossModelError",
-                    "Old column should have 'name' and 'type' keys",
-                )
+            # TODO: Improve error message
+            for column in [new_column, old_column]:
+                if "name" not in column or "type" not in column:
+                    raise CrossModelExceptions(
+                        "CrossModelError",
+                        "Column should have 'name' and 'type' keys",
+                    )
 
             new_column_obj = Column(name=new_column["name"], type=new_column["type"])
             old_column_obj = Column(name=old_column["name"], type=old_column["type"])
