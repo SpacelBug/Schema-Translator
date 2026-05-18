@@ -152,6 +152,7 @@ class CrossModel:
         new_data = []
 
         for row in old_data:
+            skip_row = False
             new_row = {}
 
             for cross_column in self.columns:
@@ -191,8 +192,22 @@ class CrossModel:
                         if (
                             cross_column.new_column.type != cross_column.old_column.type
                         ) and (value is not None):
-                            value = cross_column.parse_types(value)
-
+                            try:
+                                value = cross_column.parse_types(value)
+                            except ParserError:
+                                if mode == "lenient":
+                                    print(f"Row with broken value: {value} \n {row}")
+                                    skip_row = True
+                                    break
+                                else: 
+                                    raise ParserError
+                            except ValueError:
+                                if mode == "lenient":
+                                    print(f"Row with broken value: {value} \n {row}")
+                                    skip_row = True
+                                    break
+                                else:
+                                    raise ValueError
                     new_row[cross_column.new_column.name] = value
                 else:
                     if mode == "strict":
@@ -201,9 +216,13 @@ class CrossModel:
                             f"Column {cross_column.old_column.name} not found in old data",
                         )
                     elif mode == "lenient":
-                        continue
-
-            new_data.append(new_row)
+                        skip_row = True
+                        break
+            
+            if skip_row:
+                continue
+            else:
+                new_data.append(new_row)
 
         return new_data
 
