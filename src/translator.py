@@ -1,5 +1,3 @@
-import inspect
-
 from dateutil.parser import ParserError
 
 from .exceptions import CrossModelExceptions
