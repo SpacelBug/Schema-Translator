@@ -143,19 +143,21 @@ class CrossModel:
                 if True, then if value is not found in mapping, it will be returned as is, otherwise None will be returned.
 
             mode:
-                ['strict', 'lenient', 'exclusive', 'perverse']
+                ['strict', 'lenient', 'corrupted']
                 If 'strict' (default value), then if column is not found in old data or can`t be parsed, CrossColumnError will be raised, if 'lenient',
-                then column will be skipped, 'perverse', then column will be added to new data when it is broken.
+                then row will be skipped, 'corrupted', then return only broken result.
 
         Returns:
             list of dict, which describe data in new model
         """
 
         new_data = []
+        corrupted_data = []
 
         for row in old_data:
             skip_row = False
             new_row = {}
+            corrupted_row = {}
 
             for cross_column in self.columns:
                 if check_values_in_row(cross_column.old_column.name, row):
@@ -201,12 +203,18 @@ class CrossModel:
                                     print(f"Row with broken value: {value} \n {row}")
                                     skip_row = True
                                     break
+                                elif mode == "corrupted":
+                                    corrupted_data.append(row)
+                                    break
                                 else: 
                                     raise ParserError
                             except ValueError:
                                 if mode == "lenient":
                                     print(f"Row with broken value: {value} \n {row}")
                                     skip_row = True
+                                    break
+                                elif mode == "corrupted":
+                                    corrupted_data.append(row)
                                     break
                                 else:
                                     raise ValueError
@@ -217,6 +225,9 @@ class CrossModel:
                             "CrossColumnError",
                             f"Column {cross_column.old_column.name} not found in old data",
                         )
+                    elif mode == "corrupted":
+                        corrupted_data.append(row)
+                        break
                     elif mode == "lenient":
                         skip_row = True
                         break
@@ -226,7 +237,7 @@ class CrossModel:
             else:
                 new_data.append(new_row)
 
-        return new_data
+        return new_data if mode != "corrupted" else corrupted_data
 
     def transform_to_old(self, new_data: list[dict]) -> list[dict]:
         # TODO: implement transform_to_old method
