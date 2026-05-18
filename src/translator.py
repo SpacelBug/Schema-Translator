@@ -84,7 +84,7 @@ class CrossColumn:
     def parse_types(self, value):
         """Parse value to new type using type from new column.
 
-        date format should be "YYYY-MM-DD", datetime format should be "YYYY-MM-DD HH:MM:SS"
+        int and float values with empty string will parse into None
 
         Parameters:
             value: value which should be parsed
@@ -93,9 +93,9 @@ class CrossColumn:
             if self.new_column.type == "string":
                 return str(value)
             elif self.new_column.type == "integer":
-                return int(value)
+                return int(value) if value != "" else None
             elif self.new_column.type == "float":
-                return float(value)
+                return float(value) if value != "" else None
             elif self.new_column.type == "boolean":
                 return bool(value)
             elif self.new_column.type == "date":
