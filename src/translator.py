@@ -1,5 +1,7 @@
 import inspect
 
+from dateutil.parser import ParserError
+
 from .exceptions import CrossModelExceptions
 from .utils import check_values_in_row
 
@@ -101,9 +103,9 @@ class CrossColumn:
 
                 return datetime.strptime(value, "%Y-%m-%d").date()
             elif self.new_column.type == "datetime":
-                from datetime import datetime
+                from dateutil.parser import parser
 
-                return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                return parser().parse(value, ignoretz=True, yearfirst=True)
 
 
 class CrossModel:
