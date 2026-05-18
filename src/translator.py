@@ -103,9 +103,9 @@ class CrossColumn:
 
                 return datetime.strptime(value, "%Y-%m-%d").date()
             elif self.new_column.type == "datetime":
-                from dateutil.parser import parser
+                from dateutil.parser import parse
 
-                return parser().parse(value, ignoretz=True, yearfirst=True)
+                return parse(value, ignoretz=True, yearfirst=True)
 
 
 class CrossModel:
