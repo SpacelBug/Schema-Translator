@@ -13,22 +13,18 @@ schema = [
     {
         "old_column": {"name": "old_date", "type": "string"},
         "new_column": {"name": "new_date", "type": "date"},
-        "mapping": None,
     },
     {
         "old_column": {"name": "old_value", "type": "string"},
         "new_column": {"name": "new_value", "type": "float"},
-        "mapping": None,
     },
     {
         "old_column": {"name": "old_datetime", "type": "string"},
         "new_column": {"name": "new_datetime", "type": "datetime"},
-        "mapping": None,
     },
     {
         "old_column": {"name": "old_datetime", "type": "string"},
         "new_column": {"name": "new_datetime", "type": "boolean"},
-        "mapping": None,
     },
     {
         "old_column": {
@@ -36,6 +32,5 @@ schema = [
             "type": "string",
         },
         "new_column": {"name": "new_extra_datetime", "type": "datetime"},
-        "mapping": None,
     },
 ]
